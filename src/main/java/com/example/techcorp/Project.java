@@ -6,12 +6,13 @@ import java.util.List;
 public class Project {
     private String name;
     private int requiredWork;
-    private int progress = 0;
+    private int progress;
     private List<Employee> team = new ArrayList<>();
 
     public Project(String name, int requiredWork) {
         this.name = name;
         this.requiredWork = requiredWork;
+        this.progress = 0;
     }
 
     public void addEmployee(Employee employee) {
@@ -26,11 +27,20 @@ public class Project {
             progress = requiredWork;
         }
     }
-public int getProgress() {
-    return progress;
-}
 
-public int getRequiredWork() {
-    return requiredWork;
-}
+    public boolean isFinished() {
+        return progress >= requiredWork;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getRequiredWork() {
+        return requiredWork;
+    }
+
+    public int getProgress() {
+        return progress;
+    }
 }

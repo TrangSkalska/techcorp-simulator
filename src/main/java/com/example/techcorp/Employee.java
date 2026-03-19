@@ -1,6 +1,6 @@
 package com.example.techcorp;
 
-public class Employee {
+public abstract class Employee {
     private String name;
     private int skill;
     private double salary;
@@ -11,7 +11,19 @@ public class Employee {
         this.salary = salary;
     }
 
-    public int work() {
+    public abstract int work();
+
+    public String getName() {
+        return name;
+    }
+
+    public int getSkill() {
         return skill;
     }
+
+    public double getSalary() {
+        return salary;
+    }
+
+    public abstract String getRoleName();
 }

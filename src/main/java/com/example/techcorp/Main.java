@@ -4,39 +4,47 @@ public class Main {
     public static void main(String[] args) {
         Company company = new Company("TechCorp", 50000);
 
-        // 1. Add a third employee
-        Employee anna = new Employee("Anna", 8, 7000);
-        Employee piotr = new Employee("Piotr", 6, 6500);
-        Employee john = new Employee("John", 5, 6000);   // third employee
+        Employee anna = new Developer("Anna", 8, 7000);
+        Employee piotr = new Tester("Piotr", 6, 6500);
+        Employee ola = new Manager("Ola", 7, 9000);
+        Employee jan = new Intern("Jan", 4, 3000);
 
         company.hire(anna);
         company.hire(piotr);
-        company.hire(john);
+        company.hire(ola);
+        company.hire(jan);
 
-        // 2. Create a first project with increased required work
-        Project mobileApp = new Project("Mobile App", 40);  // 3. required work increased
+        Project mobileApp = new Project("Mobile App", 40);
+        Project backendSystem = new Project("Backend System", 40);
 
-        // Assign three employees to the first project
-        mobileApp.addEmployee(anna);
-        mobileApp.addEmployee(piotr);
-        mobileApp.addEmployee(john);
+        // Different combinations of employees
+        mobileApp.addEmployee(anna);  // developer
+        mobileApp.addEmployee(jan);   // intern
+
+        backendSystem.addEmployee(piotr); // tester
+        backendSystem.addEmployee(ola);   // manager
 
         company.startProject(mobileApp);
+        company.startProject(backendSystem);
 
-        // 2. Create a second project
-        Project webPortal = new Project("Web Portal", 25);
-        webPortal.addEmployee(anna);      // you can assign any employees you like
-        webPortal.addEmployee(piotr);
+        int turn = 0;
+        while (!mobileApp.isFinished() || !backendSystem.isFinished()) {
+            turn++;
+            System.out.println("Turn " + turn);
 
-        company.startProject(webPortal);
+            if (!mobileApp.isFinished()) {
+                mobileApp.workOneTurn();
+            }
+            if (!backendSystem.isFinished()) {
+                backendSystem.workOneTurn();
+            }
 
-        // 4. Determine how many turns are required to complete the first project
-        int turns = 0;
-        while (mobileApp.getProgress() < mobileApp.getRequiredWork()) {
-            mobileApp.workOneTurn();
-            turns++;
+            company.printStatus();
+            System.out.println();
         }
 
-        System.out.println("Mobile App project completed in " + turns + " turns.");
+        System.out.println("Simulation finished in " + turn + " turns.");
+        System.out.println("Mobile App finished: " + mobileApp.isFinished());
+        System.out.println("Backend System finished: " + backendSystem.isFinished());
     }
 }

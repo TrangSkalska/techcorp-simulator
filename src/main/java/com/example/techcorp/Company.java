@@ -21,4 +21,21 @@ public class Company {
     public void startProject(Project project) {
         projects.add(project);
     }
+
+    public void printStatus() {
+        System.out.println("Company: " + name + ", budget: " + budget);
+        System.out.println("Employees:");
+        for (Employee e : employees) {
+            System.out.println(" - " + e.getName()
+                    + " [" + e.getRoleName() + "]"
+                    + ", skill=" + e.getSkill()
+                    + ", salary=" + e.getSalary());
+        }
+        System.out.println("Projects:");
+        for (Project p : projects) {
+            System.out.println(" - " + p.getName()
+                    + " progress " + p.getProgress()
+                    + "/" + p.getRequiredWork());
+        }
+    }
 }
