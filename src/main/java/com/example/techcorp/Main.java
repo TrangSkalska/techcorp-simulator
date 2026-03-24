@@ -24,8 +24,14 @@ public class Main {
         backendSystem.addEmployee(piotr); // tester
         backendSystem.addEmployee(ola);   // manager
 
+        FreelancerBot bot = new FreelancerBot("Freelancer", 5);
+        mobileApp.addWorker(bot);   
+
         company.startProject(mobileApp);
         company.startProject(backendSystem);
+
+        mobileApp.start();
+        backendSystem.start();
 
         int turn = 0;
         while (!mobileApp.isFinished() || !backendSystem.isFinished()) {

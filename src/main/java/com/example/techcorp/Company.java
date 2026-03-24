@@ -23,19 +23,26 @@ public class Company {
     }
 
     public void printStatus() {
-        System.out.println("Company: " + name + ", budget: " + budget);
-        System.out.println("Employees:");
-        for (Employee e : employees) {
-            System.out.println(" - " + e.getName()
-                    + " [" + e.getRoleName() + "]"
-                    + ", skill=" + e.getSkill()
-                    + ", salary=" + e.getSalary());
+        System.out.println("=== COMPANY STATUS ===");
+        System.out.println("Name: " + name);
+        System.out.println("Budget: " + budget);
+        System.out.println("Employees: " + employees.size());
+        System.out.println("Projects: " + projects.size());
+        System.out.println();
+
+        if (projects.isEmpty()) {
+            System.out.println("No active projects.");
+        } else {
+            System.out.println("Projects:");
+            for (Project project : projects) {
+                System.out.println(" - " + project.getName()
+                        + " | status: " + project.getStatus()
+                        + " | progress: " + project.getProgress()
+                        + "/" + project.getRequiredWork()
+                        + " | finished: " + project.isFinished());
+            }
         }
-        System.out.println("Projects:");
-        for (Project p : projects) {
-            System.out.println(" - " + p.getName()
-                    + " progress " + p.getProgress()
-                    + "/" + p.getRequiredWork());
-        }
+
+        System.out.println("====================================");
     }
 }
