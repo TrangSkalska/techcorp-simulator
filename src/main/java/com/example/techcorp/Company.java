@@ -22,6 +22,32 @@ public class Company {
         projects.add(project);
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public double getBudget() {
+        return budget;
+    }
+
+    public List<Employee> getEmployees() {
+        return employees;
+    }
+
+    public List<Project> getProjects() {
+        return projects;
+    }
+
+    public void paySalaries() {
+        for (Employee employee : employees) {
+            budget -= employee.getSalary();
+        }
+    }
+
+    public boolean isBankrupt() {
+        return budget < 0;
+    }
+
     public void printStatus() {
         System.out.println("=== COMPANY STATUS ===");
         System.out.println("Name: " + name);

@@ -9,3 +9,5 @@
 /workspaces/techcorp-simulator/src/main/java/com/example/techcorp/ProjectStatus.java
 /workspaces/techcorp-simulator/src/main/java/com/example/techcorp/Tester.java
 /workspaces/techcorp-simulator/src/main/java/com/example/techcorp/Workable.java
+/workspaces/techcorp-simulator/src/main/java/com/example/techcorp/engine/GameEngine.java
+/workspaces/techcorp-simulator/src/main/java/com/example/techcorp/ui/ConsoleUI.java

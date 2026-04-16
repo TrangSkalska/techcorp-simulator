@@ -1,8 +1,11 @@
 package com.example.techcorp;
 
+import com.example.techcorp.engine.GameEngine;
+import com.example.techcorp.ui.ConsoleUI;
+
 public class Main {
     public static void main(String[] args) {
-        Company company = new Company("TechCorp", 50000);
+        Company company = new Company("TechCorp", 150000);
 
         Employee anna = new Developer("Anna", 8, 7000);
         Employee piotr = new Tester("Piotr", 6, 6500);
@@ -17,40 +20,20 @@ public class Main {
         Project mobileApp = new Project("Mobile App", 40);
         Project backendSystem = new Project("Backend System", 40);
 
-        // Different combinations of employees
-        mobileApp.addEmployee(anna);  // developer
-        mobileApp.addEmployee(jan);   // intern
+        mobileApp.addEmployee(anna);
+        mobileApp.addEmployee(jan);
 
-        backendSystem.addEmployee(piotr); // tester
-        backendSystem.addEmployee(ola);   // manager
+        backendSystem.addEmployee(piotr);
+        backendSystem.addEmployee(ola);
 
         FreelancerBot bot = new FreelancerBot("Freelancer", 5);
-        mobileApp.addWorker(bot);   
+        mobileApp.addWorker(bot);
 
         company.startProject(mobileApp);
         company.startProject(backendSystem);
 
-        mobileApp.start();
-        backendSystem.start();
-
-        int turn = 0;
-        while (!mobileApp.isFinished() || !backendSystem.isFinished()) {
-            turn++;
-            System.out.println("Turn " + turn);
-
-            if (!mobileApp.isFinished()) {
-                mobileApp.workOneTurn();
-            }
-            if (!backendSystem.isFinished()) {
-                backendSystem.workOneTurn();
-            }
-
-            company.printStatus();
-            System.out.println();
-        }
-
-        System.out.println("Simulation finished in " + turn + " turns.");
-        System.out.println("Mobile App finished: " + mobileApp.isFinished());
-        System.out.println("Backend System finished: " + backendSystem.isFinished());
+        ConsoleUI ui = new ConsoleUI();
+        GameEngine engine = new GameEngine(company, ui);
+        engine.start();
     }
 }
