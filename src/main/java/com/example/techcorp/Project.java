@@ -12,7 +12,6 @@ public class Project {
     private List<Workable> workers = new ArrayList<>();
 
     public Project(String name, int requiredWork) {
-        // Preconditions
         if (name == null) {
             throw new NullPointerException("Project name cannot be null.");
         }
@@ -36,9 +35,7 @@ public class Project {
     }
 
     public void addWorker(Workable worker) {
-        // Precondition
         Objects.requireNonNull(worker, "Worker cannot be null.");
-
         workers.add(worker);
     }
 
@@ -63,7 +60,6 @@ public class Project {
             progress += worker.work();
         }
 
-        // Postcondition: progress cannot be bigger than requiredWork
         if (progress >= requiredWork) {
             progress = requiredWork;
             status = ProjectStatus.FINISHED;
@@ -84,6 +80,18 @@ public class Project {
         }
 
         status = ProjectStatus.IN_PROGRESS;
+    }
+
+    public void cancel() {
+        if (status == ProjectStatus.FINISHED) {
+            throw new IllegalStateException("Finished projects cannot be cancelled.");
+        }
+
+        if (status == ProjectStatus.CANCELLED) {
+            throw new IllegalStateException("Project is already cancelled.");
+        }
+
+        status = ProjectStatus.CANCELLED;
     }
 
     public boolean isFinished() {

@@ -24,7 +24,8 @@ public class ConsoleUI {
         System.out.println("4. Show unfinished projects");
         System.out.println("5. Put project on hold");
         System.out.println("6. Resume project");
-        System.out.println("7. Exit game");
+        System.out.println("7. Cancel project");
+        System.out.println("8. Exit game");
     }
 
     public int readMenuChoice() {
@@ -39,11 +40,11 @@ public class ConsoleUI {
             int choice = scanner.nextInt();
             scanner.nextLine();
 
-            if (choice >= 1 && choice <= 7) {
+            if (choice >= 1 && choice <= 8) {
                 return choice;
             }
 
-            System.out.println("Choose a number from 1 to 7.");
+            System.out.println("Choose a number from 1 to 8.");
         }
     }
 

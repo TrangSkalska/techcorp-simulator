@@ -3,9 +3,11 @@ package com.example.techcorp.engine;
 import com.example.techcorp.Company;
 import com.example.techcorp.Project;
 import com.example.techcorp.ProjectStatus;
+import com.example.techcorp.events.EquipmentFailureEvent;
 import com.example.techcorp.events.GameEvent;
 import com.example.techcorp.events.InvestorEvent;
 import com.example.techcorp.events.MarketSlowdownEvent;
+import com.example.techcorp.events.ReputationBoostEvent;
 import com.example.techcorp.ui.ConsoleUI;
 
 import java.util.ArrayList;
@@ -38,6 +40,8 @@ public class GameEngine {
 
         events.add(new MarketSlowdownEvent());
         events.add(new InvestorEvent());
+        events.add(new ReputationBoostEvent());
+        events.add(new EquipmentFailureEvent());
     }
 
     public void start() {
@@ -60,21 +64,31 @@ public class GameEngine {
             case 1:
                 ui.showCompanyStatus(company);
                 return false;
+
             case 2:
                 return startPlannedProjects();
+
             case 3:
                 return workOnProjects();
+
             case 4:
                 ui.showUnfinishedProjects(company.getProjects());
                 return false;
+
             case 5:
                 return putProjectOnHold();
+
             case 6:
                 return resumeProject();
+
             case 7:
+                return cancelProject();
+
+            case 8:
                 running = false;
                 ui.showMessage("Thanks for playing!");
                 return false;
+
             default:
                 ui.showMessage("Invalid menu option.");
                 return false;
@@ -179,6 +193,34 @@ public class GameEngine {
             return true;
         } catch (IllegalStateException e) {
             ui.showMessage("Cannot resume project: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean cancelProject() {
+        List<Project> projects = company.getProjects();
+
+        if (projects.isEmpty()) {
+            ui.showMessage("No projects available.");
+            return false;
+        }
+
+        ui.showProjectsWithNumbers(projects);
+        int choice = ui.readProjectNumber();
+
+        if (choice < 1 || choice > projects.size()) {
+            ui.showMessage("Invalid project number.");
+            return false;
+        }
+
+        Project project = projects.get(choice - 1);
+
+        try {
+            project.cancel();
+            ui.showMessage("Project cancelled.");
+            return true;
+        } catch (IllegalStateException e) {
+            ui.showMessage("Cannot cancel project: " + e.getMessage());
             return false;
         }
     }
