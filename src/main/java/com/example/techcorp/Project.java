@@ -2,74 +2,88 @@ package com.example.techcorp;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Project {
     private String name;
     private int requiredWork;
     private int progress;
-    private List<Workable> team = new ArrayList<>();
     private ProjectStatus status;
+    private List<Workable> workers = new ArrayList<>();
 
     public Project(String name, int requiredWork) {
-        validateName(name);
-        validateRequiredWork(requiredWork);
+        // Preconditions
+        if (name == null) {
+            throw new NullPointerException("Project name cannot be null.");
+        }
+
+        if (name.isBlank()) {
+            throw new IllegalArgumentException("Project name cannot be blank.");
+        }
+
+        if (requiredWork <= 0) {
+            throw new IllegalArgumentException("Required work must be positive.");
+        }
+
         this.name = name;
         this.requiredWork = requiredWork;
         this.progress = 0;
         this.status = ProjectStatus.PLANNED;
     }
 
-    public void addWorker(Workable workable) {
-        if (workable == null) {
-            throw new IllegalArgumentException("Worker cannot be null.");
-        }
-        team.add(workable);
-    }
-
     public void addEmployee(Employee employee) {
         addWorker(employee);
     }
 
+    public void addWorker(Workable worker) {
+        // Precondition
+        Objects.requireNonNull(worker, "Worker cannot be null.");
+
+        workers.add(worker);
+    }
+
     public void start() {
-        if (status == ProjectStatus.PLANNED) {
-            status = ProjectStatus.IN_PROGRESS;
-            System.out.println("Project " + name + " started.");
+        if (status != ProjectStatus.PLANNED) {
+            throw new IllegalStateException("Only planned projects can be started.");
         }
-    }
 
-    public void putOnHold() {
-        if (status == ProjectStatus.IN_PROGRESS) {
-            status = ProjectStatus.ON_HOLD;
-            System.out.println("Project " + name + " put ON_HOLD.");
-        }
-    }
-
-    public void resume() {
-        if (status == ProjectStatus.ON_HOLD) {
-            status = ProjectStatus.IN_PROGRESS;
-            System.out.println("Project " + name + " resumed.");
-        }
-    }
-
-    public void cancel() {
-        if (status != ProjectStatus.FINISHED) {
-            status = ProjectStatus.CANCELLED;
-            System.out.println("Project " + name + " was CANCELLED.");
-        }
+        status = ProjectStatus.IN_PROGRESS;
     }
 
     public void workOneTurn() {
         if (status != ProjectStatus.IN_PROGRESS) {
-            return;
+            throw new IllegalStateException("Only projects in progress can be worked on.");
         }
-        for (Workable workable : team) {
-            progress += workable.work();
+
+        if (workers.isEmpty()) {
+            throw new IllegalStateException("Project must have at least one worker.");
         }
+
+        for (Workable worker : workers) {
+            progress += worker.work();
+        }
+
+        // Postcondition: progress cannot be bigger than requiredWork
         if (progress >= requiredWork) {
             progress = requiredWork;
             status = ProjectStatus.FINISHED;
-            System.out.println("Project " + name + " is FINISHED.");
         }
+    }
+
+    public void putOnHold() {
+        if (status != ProjectStatus.IN_PROGRESS) {
+            throw new IllegalStateException("Only projects in progress can be put on hold.");
+        }
+
+        status = ProjectStatus.ON_HOLD;
+    }
+
+    public void resume() {
+        if (status != ProjectStatus.ON_HOLD) {
+            throw new IllegalStateException("Only projects on hold can be resumed.");
+        }
+
+        status = ProjectStatus.IN_PROGRESS;
     }
 
     public boolean isFinished() {
@@ -90,17 +104,5 @@ public class Project {
 
     public ProjectStatus getStatus() {
         return status;
-    }
-
-    private void validateName(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Project name cannot be null or blank.");
-        }
-    }
-
-    private void validateRequiredWork(int requiredWork) {
-        if (requiredWork <= 0) {
-            throw new IllegalArgumentException("Required work must be greater than 0.");
-        }
     }
 }

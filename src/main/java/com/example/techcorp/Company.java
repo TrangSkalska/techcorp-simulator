@@ -10,15 +10,38 @@ public class Company {
     private List<Project> projects = new ArrayList<>();
 
     public Company(String name, double budget) {
+        // Preconditions
+        if (name == null) {
+            throw new NullPointerException("Company name cannot be null.");
+        }
+
+        if (name.isBlank()) {
+            throw new IllegalArgumentException("Company name cannot be blank.");
+        }
+
+        if (budget < 0) {
+            throw new IllegalArgumentException("Budget cannot be negative.");
+        }
+
         this.name = name;
         this.budget = budget;
     }
 
     public void hire(Employee employee) {
+        // Precondition
+        if (employee == null) {
+            throw new NullPointerException("Employee cannot be null.");
+        }
+
         employees.add(employee);
     }
 
     public void startProject(Project project) {
+        // Precondition
+        if (project == null) {
+            throw new NullPointerException("Project cannot be null.");
+        }
+
         projects.add(project);
     }
 
@@ -41,6 +64,11 @@ public class Company {
     public void paySalaries() {
         for (Employee employee : employees) {
             budget -= employee.getSalary();
+        }
+
+        // Postcondition check
+        if (Double.isNaN(budget)) {
+            throw new IllegalStateException("Budget became invalid after paying salaries.");
         }
     }
 

@@ -15,6 +15,14 @@ public class GameEngine {
     private final int maxTurns = 10;
 
     public GameEngine(Company company, ConsoleUI ui) {
+        if (company == null) {
+            throw new NullPointerException("Company cannot be null.");
+        }
+
+        if (ui == null) {
+            throw new NullPointerException("Console UI cannot be null.");
+        }
+
         this.company = company;
         this.ui = ui;
         this.running = true;
@@ -67,8 +75,12 @@ public class GameEngine {
 
         for (Project project : company.getProjects()) {
             if (project.getStatus() == ProjectStatus.PLANNED) {
-                project.start();
-                startedAny = true;
+                try {
+                    project.start();
+                    startedAny = true;
+                } catch (IllegalStateException e) {
+                    ui.showMessage("Cannot start project " + project.getName() + ": " + e.getMessage());
+                }
             }
         }
 
@@ -86,8 +98,12 @@ public class GameEngine {
 
         for (Project project : company.getProjects()) {
             if (project.getStatus() == ProjectStatus.IN_PROGRESS) {
-                project.workOneTurn();
-                workedAny = true;
+                try {
+                    project.workOneTurn();
+                    workedAny = true;
+                } catch (IllegalStateException e) {
+                    ui.showMessage("Cannot work on project " + project.getName() + ": " + e.getMessage());
+                }
             }
         }
 
@@ -118,12 +134,12 @@ public class GameEngine {
 
         Project project = projects.get(choice - 1);
 
-        if (project.getStatus() == ProjectStatus.IN_PROGRESS) {
+        try {
             project.putOnHold();
             ui.showMessage("Project placed on hold.");
             return true;
-        } else {
-            ui.showMessage("Only IN_PROGRESS projects can be put on hold.");
+        } catch (IllegalStateException e) {
+            ui.showMessage("Cannot put project on hold: " + e.getMessage());
             return false;
         }
     }
@@ -146,18 +162,24 @@ public class GameEngine {
 
         Project project = projects.get(choice - 1);
 
-        if (project.getStatus() == ProjectStatus.ON_HOLD) {
+        try {
             project.resume();
             ui.showMessage("Project resumed.");
             return true;
-        } else {
-            ui.showMessage("Only ON_HOLD projects can be resumed.");
+        } catch (IllegalStateException e) {
+            ui.showMessage("Cannot resume project: " + e.getMessage());
             return false;
         }
     }
 
     private void endTurn() {
-        company.paySalaries();
+        try {
+            company.paySalaries();
+        } catch (IllegalStateException e) {
+            ui.showMessage("Salary payment error: " + e.getMessage());
+            running = false;
+            return;
+        }
 
         if (allProjectsFinished()) {
             ui.showMessage("You win! All projects are finished.");
