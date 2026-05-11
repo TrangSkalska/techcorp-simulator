@@ -1,6 +1,7 @@
 package com.example.techcorp.engine;
 
 import com.example.techcorp.Company;
+import com.example.techcorp.GameLogger;
 import com.example.techcorp.Project;
 import com.example.techcorp.ProjectStatus;
 import com.example.techcorp.events.EquipmentFailureEvent;
@@ -23,6 +24,7 @@ public class GameEngine {
 
     private List<GameEvent> events = new ArrayList<>();
     private Random random = new Random();
+    private GameLogger logger = new GameLogger("game-results.txt");
 
     public GameEngine(Company company, ConsoleUI ui) {
         if (company == null) {
@@ -42,6 +44,11 @@ public class GameEngine {
         events.add(new InvestorEvent());
         events.add(new ReputationBoostEvent());
         events.add(new EquipmentFailureEvent());
+
+        logger.clear();
+        logger.log("Game started.");
+        logger.log("Company: " + company.getName());
+        logger.log("Starting budget: " + company.getBudget());
     }
 
     public void start() {
@@ -51,12 +58,16 @@ public class GameEngine {
             ui.showMainMenu();
 
             int choice = ui.readMenuChoice();
+            logger.log("Turn " + turn + ": player chose option " + choice);
+
             boolean actionConsumesTurn = handleChoice(choice);
 
             if (running && actionConsumesTurn) {
                 endTurn();
             }
         }
+
+        logger.log("Game ended.");
     }
 
     private boolean handleChoice(int choice) {
@@ -87,10 +98,12 @@ public class GameEngine {
             case 8:
                 running = false;
                 ui.showMessage("Thanks for playing!");
+                logger.log("Player exited the game.");
                 return false;
 
             default:
                 ui.showMessage("Invalid menu option.");
+                logger.log("Invalid menu option selected.");
                 return false;
         }
     }
@@ -103,8 +116,10 @@ public class GameEngine {
                 try {
                     project.start();
                     startedAny = true;
+                    logger.log("Started project: " + project.getName());
                 } catch (IllegalStateException e) {
                     ui.showMessage("Cannot start project " + project.getName() + ": " + e.getMessage());
+                    logger.log("Could not start project " + project.getName() + ": " + e.getMessage());
                 }
             }
         }
@@ -114,6 +129,7 @@ public class GameEngine {
             return true;
         } else {
             ui.showMessage("No planned projects to start.");
+            logger.log("No planned projects to start.");
             return false;
         }
     }
@@ -126,8 +142,12 @@ public class GameEngine {
                 try {
                     project.workOneTurn();
                     workedAny = true;
+                    logger.log("Worked on project: " + project.getName()
+                            + " | progress: " + project.getProgress()
+                            + "/" + project.getRequiredWork());
                 } catch (IllegalStateException e) {
                     ui.showMessage("Cannot work on project " + project.getName() + ": " + e.getMessage());
+                    logger.log("Could not work on project " + project.getName() + ": " + e.getMessage());
                 }
             }
         }
@@ -137,6 +157,7 @@ public class GameEngine {
             return true;
         } else {
             ui.showMessage("No projects in progress.");
+            logger.log("No projects in progress.");
             return false;
         }
     }
@@ -162,9 +183,11 @@ public class GameEngine {
         try {
             project.putOnHold();
             ui.showMessage("Project placed on hold.");
+            logger.log("Project placed on hold: " + project.getName());
             return true;
         } catch (IllegalStateException e) {
             ui.showMessage("Cannot put project on hold: " + e.getMessage());
+            logger.log("Could not put project on hold: " + e.getMessage());
             return false;
         }
     }
@@ -190,9 +213,11 @@ public class GameEngine {
         try {
             project.resume();
             ui.showMessage("Project resumed.");
+            logger.log("Project resumed: " + project.getName());
             return true;
         } catch (IllegalStateException e) {
             ui.showMessage("Cannot resume project: " + e.getMessage());
+            logger.log("Could not resume project: " + e.getMessage());
             return false;
         }
     }
@@ -218,9 +243,11 @@ public class GameEngine {
         try {
             project.cancel();
             ui.showMessage("Project cancelled.");
+            logger.log("Project cancelled: " + project.getName());
             return true;
         } catch (IllegalStateException e) {
             ui.showMessage("Cannot cancel project: " + e.getMessage());
+            logger.log("Could not cancel project: " + e.getMessage());
             return false;
         }
     }
@@ -228,27 +255,34 @@ public class GameEngine {
     private void endTurn() {
         try {
             company.paySalaries();
+            logger.log("Salaries paid. Budget is now: " + company.getBudget());
             applyRandomEvent();
         } catch (IllegalStateException e) {
             ui.showMessage("Turn error: " + e.getMessage());
+            logger.log("Turn error: " + e.getMessage());
             running = false;
             return;
         }
 
+        logCompanyState();
+
         if (allProjectsFinished()) {
             ui.showMessage("You win! All projects are finished.");
+            logger.log("RESULT: WIN. All projects finished.");
             running = false;
             return;
         }
 
         if (company.isBankrupt()) {
             ui.showMessage("You lose! Budget fell below zero.");
+            logger.log("RESULT: LOSS. Budget fell below zero.");
             running = false;
             return;
         }
 
         if (turn >= maxTurns) {
             ui.showMessage("Maximum turns reached. Game over!");
+            logger.log("RESULT: GAME OVER. Maximum turns reached.");
             running = false;
             return;
         }
@@ -265,6 +299,19 @@ public class GameEngine {
             GameEvent event = events.get(random.nextInt(events.size()));
             event.apply(company);
             ui.showMessage("EVENT: " + event.getDescription());
+            logger.log("EVENT: " + event.getDescription());
+        }
+    }
+
+    private void logCompanyState() {
+        logger.log("--- End of turn " + turn + " ---");
+        logger.log("Budget: " + company.getBudget());
+
+        for (Project project : company.getProjects()) {
+            logger.log("Project: " + project.getName()
+                    + " | status: " + project.getStatus()
+                    + " | progress: " + project.getProgress()
+                    + "/" + project.getRequiredWork());
         }
     }
 
