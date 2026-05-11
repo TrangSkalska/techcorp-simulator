@@ -3,9 +3,14 @@ package com.example.techcorp.engine;
 import com.example.techcorp.Company;
 import com.example.techcorp.Project;
 import com.example.techcorp.ProjectStatus;
+import com.example.techcorp.events.GameEvent;
+import com.example.techcorp.events.InvestorEvent;
+import com.example.techcorp.events.MarketSlowdownEvent;
 import com.example.techcorp.ui.ConsoleUI;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class GameEngine {
     private Company company;
@@ -13,6 +18,9 @@ public class GameEngine {
     private boolean running;
     private int turn;
     private final int maxTurns = 10;
+
+    private List<GameEvent> events = new ArrayList<>();
+    private Random random = new Random();
 
     public GameEngine(Company company, ConsoleUI ui) {
         if (company == null) {
@@ -27,6 +35,9 @@ public class GameEngine {
         this.ui = ui;
         this.running = true;
         this.turn = 1;
+
+        events.add(new MarketSlowdownEvent());
+        events.add(new InvestorEvent());
     }
 
     public void start() {
@@ -175,8 +186,9 @@ public class GameEngine {
     private void endTurn() {
         try {
             company.paySalaries();
+            applyRandomEvent();
         } catch (IllegalStateException e) {
-            ui.showMessage("Salary payment error: " + e.getMessage());
+            ui.showMessage("Turn error: " + e.getMessage());
             running = false;
             return;
         }
@@ -200,6 +212,18 @@ public class GameEngine {
         }
 
         turn++;
+    }
+
+    private void applyRandomEvent() {
+        if (events.isEmpty()) {
+            return;
+        }
+
+        if (random.nextInt(100) < 30) {
+            GameEvent event = events.get(random.nextInt(events.size()));
+            event.apply(company);
+            ui.showMessage("EVENT: " + event.getDescription());
+        }
     }
 
     private boolean allProjectsFinished() {

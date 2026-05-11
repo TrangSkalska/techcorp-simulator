@@ -45,20 +45,32 @@ public class Company {
         projects.add(project);
     }
 
-    public String getName() {
-        return name;
+    public void reduceBudget(double amount) {
+        // Precondition
+        if (amount < 0) {
+            throw new IllegalArgumentException("Amount cannot be negative.");
+        }
+
+        budget -= amount;
+
+        // Postcondition check
+        if (Double.isNaN(budget)) {
+            throw new IllegalStateException("Budget became invalid after reducing budget.");
+        }
     }
 
-    public double getBudget() {
-        return budget;
-    }
+    public void increaseBudget(double amount) {
+        // Precondition
+        if (amount < 0) {
+            throw new IllegalArgumentException("Amount cannot be negative.");
+        }
 
-    public List<Employee> getEmployees() {
-        return employees;
-    }
+        budget += amount;
 
-    public List<Project> getProjects() {
-        return projects;
+        // Postcondition check
+        if (Double.isNaN(budget)) {
+            throw new IllegalStateException("Budget became invalid after increasing budget.");
+        }
     }
 
     public void paySalaries() {
@@ -74,6 +86,22 @@ public class Company {
 
     public boolean isBankrupt() {
         return budget < 0;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getBudget() {
+        return budget;
+    }
+
+    public List<Employee> getEmployees() {
+        return employees;
+    }
+
+    public List<Project> getProjects() {
+        return projects;
     }
 
     public void printStatus() {
