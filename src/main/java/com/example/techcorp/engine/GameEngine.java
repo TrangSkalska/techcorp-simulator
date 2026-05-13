@@ -16,29 +16,40 @@ import java.util.List;
 import java.util.Random;
 
 public class GameEngine {
-    private Company company;
+    private Company playerCompany;
+    private Company aiCompany;
+    private AIPlayer aiPlayer;
     private ConsoleUI ui;
+
     private boolean running;
     private int turn;
     private final int maxTurns = 10;
+    private GameResult result;
 
     private List<GameEvent> events = new ArrayList<>();
     private Random random = new Random();
     private GameLogger logger = new GameLogger("game-results.txt");
 
-    public GameEngine(Company company, ConsoleUI ui) {
-        if (company == null) {
-            throw new NullPointerException("Company cannot be null.");
+    public GameEngine(Company playerCompany, Company aiCompany, ConsoleUI ui) {
+        if (playerCompany == null) {
+            throw new NullPointerException("Player company cannot be null.");
+        }
+
+        if (aiCompany == null) {
+            throw new NullPointerException("AI company cannot be null.");
         }
 
         if (ui == null) {
             throw new NullPointerException("Console UI cannot be null.");
         }
 
-        this.company = company;
+        this.playerCompany = playerCompany;
+        this.aiCompany = aiCompany;
+        this.aiPlayer = new AIPlayer(aiCompany);
         this.ui = ui;
         this.running = true;
         this.turn = 1;
+        this.result = GameResult.IN_PROGRESS;
 
         events.add(new MarketSlowdownEvent());
         events.add(new InvestorEvent());
@@ -47,14 +58,22 @@ public class GameEngine {
 
         logger.clear();
         logger.log("Game started.");
-        logger.log("Company: " + company.getName());
-        logger.log("Starting budget: " + company.getBudget());
+        logger.log("Player company: " + playerCompany.getName());
+        logger.log("AI company: " + aiCompany.getName());
+        logger.log("Player starting budget: " + playerCompany.getBudget());
+        logger.log("AI starting budget: " + aiCompany.getBudget());
     }
 
     public void start() {
         while (running) {
             ui.showTurnHeader(turn);
-            ui.showCompanyStatus(company);
+
+            ui.showMessage("=== PLAYER COMPANY ===");
+            ui.showCompanyStatus(playerCompany);
+
+            ui.showMessage("=== AI COMPANY ===");
+            ui.showCompanyStatus(aiCompany);
+
             ui.showMainMenu();
 
             int choice = ui.readMenuChoice();
@@ -63,27 +82,29 @@ public class GameEngine {
             boolean actionConsumesTurn = handleChoice(choice);
 
             if (running && actionConsumesTurn) {
+                aiTurn();
                 endTurn();
             }
         }
 
         logger.log("Game ended.");
+        logger.log("Final result: " + result);
     }
 
     private boolean handleChoice(int choice) {
         switch (choice) {
             case 1:
-                ui.showCompanyStatus(company);
+                ui.showCompanyStatus(playerCompany);
                 return false;
 
             case 2:
-                return startPlannedProjects();
+                return startPlannedProjects(playerCompany, "Player");
 
             case 3:
-                return workOnProjects();
+                return workOnProjects(playerCompany, "Player");
 
             case 4:
-                ui.showUnfinishedProjects(company.getProjects());
+                ui.showUnfinishedProjects(playerCompany.getProjects());
                 return false;
 
             case 5:
@@ -108,7 +129,7 @@ public class GameEngine {
         }
     }
 
-    private boolean startPlannedProjects() {
+    private boolean startPlannedProjects(Company company, String owner) {
         boolean startedAny = false;
 
         for (Project project : company.getProjects()) {
@@ -116,25 +137,24 @@ public class GameEngine {
                 try {
                     project.start();
                     startedAny = true;
-                    logger.log("Started project: " + project.getName());
+                    logger.log(owner + " started project: " + project.getName());
                 } catch (IllegalStateException e) {
-                    ui.showMessage("Cannot start project " + project.getName() + ": " + e.getMessage());
-                    logger.log("Could not start project " + project.getName() + ": " + e.getMessage());
+                    logger.log(owner + " could not start project " + project.getName() + ": " + e.getMessage());
                 }
             }
         }
 
         if (startedAny) {
-            ui.showMessage("All planned projects started.");
+            ui.showMessage(owner + " started planned projects.");
             return true;
         } else {
             ui.showMessage("No planned projects to start.");
-            logger.log("No planned projects to start.");
+            logger.log(owner + " had no planned projects to start.");
             return false;
         }
     }
 
-    private boolean workOnProjects() {
+    private boolean workOnProjects(Company company, String owner) {
         boolean workedAny = false;
 
         for (Project project : company.getProjects()) {
@@ -142,28 +162,27 @@ public class GameEngine {
                 try {
                     project.workOneTurn();
                     workedAny = true;
-                    logger.log("Worked on project: " + project.getName()
+                    logger.log(owner + " worked on project: " + project.getName()
                             + " | progress: " + project.getProgress()
                             + "/" + project.getRequiredWork());
                 } catch (IllegalStateException e) {
-                    ui.showMessage("Cannot work on project " + project.getName() + ": " + e.getMessage());
-                    logger.log("Could not work on project " + project.getName() + ": " + e.getMessage());
+                    logger.log(owner + " could not work on project " + project.getName() + ": " + e.getMessage());
                 }
             }
         }
 
         if (workedAny) {
-            ui.showMessage("Projects worked for one turn.");
+            ui.showMessage(owner + " worked on projects.");
             return true;
         } else {
             ui.showMessage("No projects in progress.");
-            logger.log("No projects in progress.");
+            logger.log(owner + " had no projects in progress.");
             return false;
         }
     }
 
     private boolean putProjectOnHold() {
-        List<Project> projects = company.getProjects();
+        List<Project> projects = playerCompany.getProjects();
 
         if (projects.isEmpty()) {
             ui.showMessage("No projects available.");
@@ -183,7 +202,7 @@ public class GameEngine {
         try {
             project.putOnHold();
             ui.showMessage("Project placed on hold.");
-            logger.log("Project placed on hold: " + project.getName());
+            logger.log("Player placed project on hold: " + project.getName());
             return true;
         } catch (IllegalStateException e) {
             ui.showMessage("Cannot put project on hold: " + e.getMessage());
@@ -193,7 +212,7 @@ public class GameEngine {
     }
 
     private boolean resumeProject() {
-        List<Project> projects = company.getProjects();
+        List<Project> projects = playerCompany.getProjects();
 
         if (projects.isEmpty()) {
             ui.showMessage("No projects available.");
@@ -213,7 +232,7 @@ public class GameEngine {
         try {
             project.resume();
             ui.showMessage("Project resumed.");
-            logger.log("Project resumed: " + project.getName());
+            logger.log("Player resumed project: " + project.getName());
             return true;
         } catch (IllegalStateException e) {
             ui.showMessage("Cannot resume project: " + e.getMessage());
@@ -223,7 +242,7 @@ public class GameEngine {
     }
 
     private boolean cancelProject() {
-        List<Project> projects = company.getProjects();
+        List<Project> projects = playerCompany.getProjects();
 
         if (projects.isEmpty()) {
             ui.showMessage("No projects available.");
@@ -243,7 +262,7 @@ public class GameEngine {
         try {
             project.cancel();
             ui.showMessage("Project cancelled.");
-            logger.log("Project cancelled: " + project.getName());
+            logger.log("Player cancelled project: " + project.getName());
             return true;
         } catch (IllegalStateException e) {
             ui.showMessage("Cannot cancel project: " + e.getMessage());
@@ -252,11 +271,28 @@ public class GameEngine {
         }
     }
 
+    private void aiTurn() {
+        try {
+            String decision = aiPlayer.makeDecision();
+            ui.showMessage("AI: " + decision);
+            logger.log("AI decision: " + decision);
+        } catch (IllegalStateException e) {
+            ui.showMessage("AI could not act: " + e.getMessage());
+            logger.log("AI error: " + e.getMessage());
+        }
+    }
+
     private void endTurn() {
         try {
-            company.paySalaries();
-            logger.log("Salaries paid. Budget is now: " + company.getBudget());
-            applyRandomEvent();
+            playerCompany.paySalaries();
+            aiCompany.paySalaries();
+
+            logger.log("Player salaries paid. Budget: " + playerCompany.getBudget());
+            logger.log("AI salaries paid. Budget: " + aiCompany.getBudget());
+
+            applyRandomEvent(playerCompany, "Player");
+            applyRandomEvent(aiCompany, "AI");
+
         } catch (IllegalStateException e) {
             ui.showMessage("Turn error: " + e.getMessage());
             logger.log("Turn error: " + e.getMessage());
@@ -264,25 +300,13 @@ public class GameEngine {
             return;
         }
 
-        logCompanyState();
+        logCompanyState(playerCompany, "Player");
+        logCompanyState(aiCompany, "AI");
 
-        if (allProjectsFinished()) {
-            ui.showMessage("You win! All projects are finished.");
-            logger.log("RESULT: WIN. All projects finished.");
-            running = false;
-            return;
-        }
+        evaluateResult();
 
-        if (company.isBankrupt()) {
-            ui.showMessage("You lose! Budget fell below zero.");
-            logger.log("RESULT: LOSS. Budget fell below zero.");
-            running = false;
-            return;
-        }
-
-        if (turn >= maxTurns) {
-            ui.showMessage("Maximum turns reached. Game over!");
-            logger.log("RESULT: GAME OVER. Maximum turns reached.");
+        if (result != GameResult.IN_PROGRESS) {
+            showResult();
             running = false;
             return;
         }
@@ -290,7 +314,7 @@ public class GameEngine {
         turn++;
     }
 
-    private void applyRandomEvent() {
+    private void applyRandomEvent(Company company, String owner) {
         if (events.isEmpty()) {
             return;
         }
@@ -298,13 +322,94 @@ public class GameEngine {
         if (random.nextInt(100) < 30) {
             GameEvent event = events.get(random.nextInt(events.size()));
             event.apply(company);
-            ui.showMessage("EVENT: " + event.getDescription());
-            logger.log("EVENT: " + event.getDescription());
+
+            String message = owner + " EVENT: " + event.getDescription();
+            ui.showMessage(message);
+            logger.log(message);
         }
     }
 
-    private void logCompanyState() {
-        logger.log("--- End of turn " + turn + " ---");
+    private void evaluateResult() {
+        boolean playerFinished = allProjectsFinished(playerCompany);
+        boolean aiFinished = allProjectsFinished(aiCompany);
+
+        if (playerCompany.isBankrupt() && aiCompany.isBankrupt()) {
+            result = GameResult.DRAW;
+            return;
+        }
+
+        if (playerCompany.isBankrupt()) {
+            result = GameResult.AI_WINS;
+            return;
+        }
+
+        if (aiCompany.isBankrupt()) {
+            result = GameResult.PLAYER_WINS;
+            return;
+        }
+
+        if (playerFinished && !aiFinished) {
+            result = GameResult.PLAYER_WINS;
+            return;
+        }
+
+        if (aiFinished && !playerFinished) {
+            result = GameResult.AI_WINS;
+            return;
+        }
+
+        if (playerFinished && aiFinished) {
+            compareCompanyScores();
+            return;
+        }
+
+        if (turn >= maxTurns) {
+            compareCompanyScores();
+        }
+    }
+
+    private void compareCompanyScores() {
+        double playerScore = calculateCompanyScore(playerCompany);
+        double aiScore = calculateCompanyScore(aiCompany);
+
+        logger.log("Player score: " + playerScore);
+        logger.log("AI score: " + aiScore);
+
+        if (playerScore > aiScore) {
+            result = GameResult.PLAYER_WINS;
+        } else if (aiScore > playerScore) {
+            result = GameResult.AI_WINS;
+        } else {
+            result = GameResult.DRAW;
+        }
+    }
+
+    private double calculateCompanyScore(Company company) {
+        int finishedProjects = 0;
+
+        for (Project project : company.getProjects()) {
+            if (project.isFinished()) {
+                finishedProjects++;
+            }
+        }
+
+        return company.getBudget() + finishedProjects * 10000;
+    }
+
+    private void showResult() {
+        if (result == GameResult.PLAYER_WINS) {
+            ui.showMessage("You win! Your company defeated the AI competitor.");
+        } else if (result == GameResult.AI_WINS) {
+            ui.showMessage("You lose! The AI competitor performed better.");
+        } else if (result == GameResult.DRAW) {
+            ui.showMessage("Draw! Both companies performed equally.");
+        }
+
+        logger.log("RESULT: " + result);
+    }
+
+    private void logCompanyState(Company company, String owner) {
+        logger.log("--- " + owner + " company after turn " + turn + " ---");
         logger.log("Budget: " + company.getBudget());
 
         for (Project project : company.getProjects()) {
@@ -315,7 +420,7 @@ public class GameEngine {
         }
     }
 
-    private boolean allProjectsFinished() {
+    private boolean allProjectsFinished(Company company) {
         if (company.getProjects().isEmpty()) {
             return false;
         }

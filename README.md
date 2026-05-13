@@ -1,8 +1,13 @@
 # TechCorp Simulator
 
-A turn-based business decision game written in Java.
+A turn-based business strategy game written in Java.
+
+The player manages a technology company competing against an AI-controlled company.  
+Both companies manage employees, projects, budgets, and random business events.
 
 ## Features
+- Turn-based gameplay
+- AI opponent company
 - Employee hierarchy
 - Multiple project management
 - Random events
@@ -11,6 +16,7 @@ A turn-based business decision game written in Java.
 - Project lifecycle management
 - Console UI
 - Exception handling and validation
+- External file saving
 
 ## Run
 
@@ -28,6 +34,7 @@ game-results.txt
 
 The file stores:
 - player actions,
+- AI actions,
 - project progress,
 - random events,
 - game results,
