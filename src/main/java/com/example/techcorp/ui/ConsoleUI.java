@@ -2,6 +2,7 @@ package com.example.techcorp.ui;
 
 import com.example.techcorp.Company;
 import com.example.techcorp.Project;
+import com.example.techcorp.ProjectStatus;
 
 import java.util.List;
 import java.util.Scanner;
@@ -21,16 +22,18 @@ public class ConsoleUI {
         System.out.println("1. Show company status");
         System.out.println("2. Start planned projects");
         System.out.println("3. Work on projects");
-        System.out.println("4. Show unfinished projects");
+        System.out.println("4. Show active unfinished projects");
         System.out.println("5. Put project on hold");
         System.out.println("6. Resume project");
         System.out.println("7. Cancel project");
-        System.out.println("8. Exit game");
+        System.out.println("8. Save money this turn");
+        System.out.println("9. Exit game");
     }
 
     public int readMenuChoice() {
         while (true) {
             System.out.print("Enter choice: ");
+
             if (!scanner.hasNextInt()) {
                 System.out.println("Please enter a number.");
                 scanner.nextLine();
@@ -40,11 +43,11 @@ public class ConsoleUI {
             int choice = scanner.nextInt();
             scanner.nextLine();
 
-            if (choice >= 1 && choice <= 8) {
+            if (choice >= 1 && choice <= 9) {
                 return choice;
             }
 
-            System.out.println("Choose a number from 1 to 8.");
+            System.out.println("Choose a number from 1 to 9.");
         }
     }
 
@@ -54,9 +57,12 @@ public class ConsoleUI {
 
     public void showUnfinishedProjects(List<Project> projects) {
         boolean found = false;
-        System.out.println("=== UNFINISHED PROJECTS ===");
+
+        System.out.println("=== ACTIVE UNFINISHED PROJECTS ===");
+
         for (Project project : projects) {
-            if (!project.isFinished()) {
+            if (!project.isFinished()
+                    && project.getStatus() != ProjectStatus.CANCELLED) {
                 found = true;
                 System.out.println(" - " + project.getName()
                         + " | status: " + project.getStatus()
@@ -66,13 +72,14 @@ public class ConsoleUI {
         }
 
         if (!found) {
-            System.out.println("No unfinished projects.");
+            System.out.println("No active unfinished projects.");
         }
     }
 
     public void showProjectsWithNumbers(List<Project> projects) {
         for (int i = 0; i < projects.size(); i++) {
             Project project = projects.get(i);
+
             System.out.println((i + 1) + ". " + project.getName()
                     + " | status: " + project.getStatus()
                     + " | progress: " + project.getProgress()
@@ -83,6 +90,7 @@ public class ConsoleUI {
     public int readProjectNumber() {
         while (true) {
             System.out.print("Choose project number: ");
+
             if (!scanner.hasNextInt()) {
                 System.out.println("Please enter a number.");
                 scanner.nextLine();
@@ -91,6 +99,7 @@ public class ConsoleUI {
 
             int number = scanner.nextInt();
             scanner.nextLine();
+
             return number;
         }
     }

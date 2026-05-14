@@ -117,6 +117,9 @@ public class GameEngine {
                 return cancelProject();
 
             case 8:
+                return saveMoneyTurn();
+
+            case 9:
                 running = false;
                 ui.showMessage("Thanks for playing!");
                 logger.log("Player exited the game.");
@@ -139,7 +142,8 @@ public class GameEngine {
                     startedAny = true;
                     logger.log(owner + " started project: " + project.getName());
                 } catch (IllegalStateException e) {
-                    logger.log(owner + " could not start project " + project.getName() + ": " + e.getMessage());
+                    logger.log(owner + " could not start project "
+                            + project.getName() + ": " + e.getMessage());
                 }
             }
         }
@@ -162,11 +166,13 @@ public class GameEngine {
                 try {
                     project.workOneTurn();
                     workedAny = true;
+
                     logger.log(owner + " worked on project: " + project.getName()
                             + " | progress: " + project.getProgress()
                             + "/" + project.getRequiredWork());
                 } catch (IllegalStateException e) {
-                    logger.log(owner + " could not work on project " + project.getName() + ": " + e.getMessage());
+                    logger.log(owner + " could not work on project "
+                            + project.getName() + ": " + e.getMessage());
                 }
             }
         }
@@ -269,6 +275,20 @@ public class GameEngine {
             logger.log("Could not cancel project: " + e.getMessage());
             return false;
         }
+    }
+
+    private boolean saveMoneyTurn() {
+        double savings = playerCompany.getEmployees().size() * 5000;
+
+        playerCompany.increaseBudget(savings);
+
+        ui.showMessage("You reduced company expenses this turn.");
+        ui.showMessage("Budget savings: +" + savings);
+
+        logger.log("Player used Save Money action.");
+        logger.log("Player saved: " + savings);
+
+        return true;
     }
 
     private void aiTurn() {
