@@ -22,7 +22,7 @@ public class ConsoleUI {
         System.out.println("1. Show company status");
         System.out.println("2. Start planned projects");
         System.out.println("3. Work on projects");
-        System.out.println("4. Show active unfinished projects");
+        System.out.println("4. Show active projects");
         System.out.println("5. Put project on hold");
         System.out.println("6. Resume project");
         System.out.println("7. Cancel project");
@@ -58,11 +58,10 @@ public class ConsoleUI {
     public void showUnfinishedProjects(List<Project> projects) {
         boolean found = false;
 
-        System.out.println("=== ACTIVE UNFINISHED PROJECTS ===");
+        System.out.println("=== ACTIVE PROJECTS ===");
 
         for (Project project : projects) {
-            if (!project.isFinished()
-                    && project.getStatus() != ProjectStatus.CANCELLED) {
+            if (project.getStatus() == ProjectStatus.IN_PROGRESS) {
                 found = true;
                 System.out.println(" - " + project.getName()
                         + " | status: " + project.getStatus()
@@ -72,7 +71,7 @@ public class ConsoleUI {
         }
 
         if (!found) {
-            System.out.println("No active unfinished projects.");
+            System.out.println("No active projects.");
         }
     }
 
