@@ -94,7 +94,7 @@ public class GameEngine {
     private boolean handleChoice(int choice) {
         switch (choice) {
             case 1:
-                ui.showCompanyStatus(playerCompany);
+                ui.showMessage("Refreshing company status...");
                 return false;
 
             case 2:
