@@ -18,7 +18,7 @@ Both companies manage employees, projects, budgets, and random business events.
 - Exception handling and validation
 - External file saving
 
-## How the Game Works
+## How the game works?
 
 The player controls a technology company competing against an AI-controlled company.
 
