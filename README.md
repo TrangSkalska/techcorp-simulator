@@ -37,7 +37,8 @@ Each turn, the player chooses one action from the menu:
 At the end of each turn:
 - salaries are paid,
 - random business events may occur,
-- the AI company performs its own actions automatically.
+- the AI company performs its own actions automatically,
+- the game checks the result.
 
 The goal is to manage projects and budget better than the AI competitor.
 
@@ -48,6 +49,10 @@ The player wins if:
 The player loses if:
 - their company runs out of budget, or
 - the AI company performs better.
+
+The game may end in a draw if:
+- both companies run out of budget at the same time, or
+- both companies finish with equal performance.
 
 ## Run
 
