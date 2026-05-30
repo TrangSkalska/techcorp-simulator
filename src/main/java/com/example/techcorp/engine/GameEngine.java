@@ -354,7 +354,7 @@ public class GameEngine {
         boolean aiFinished = allProjectsFinished(aiCompany);
 
         if (playerCompany.isBankrupt() && aiCompany.isBankrupt()) {
-            result = GameResult.DRAW;
+            compareCompanyScores();
             return;
         }
 
